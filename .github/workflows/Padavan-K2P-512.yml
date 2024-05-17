@@ -1,0 +1,55 @@
+#修改TNAME: K2P 中的K2P为你需要编译的型号，注意名称要与configs/templates/目录下的名字相同
+name: Padavan-K2P-512
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+    - name: Initialization environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install upx unzip libtool-bin curl cmake gperf gawk flex bison nano xxd fakeroot kmod cpio git python3-docutils gettext automake autopoint texinfo build-essential help2man pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget libc-dev-bin bc
+    - name: Clone source code
+      env:
+        KERNEL: 4.4
+      run: |
+        git clone --depth=1 https://github.com/52fancy/padavan-4.4.git /opt/padavan-4.4
+        cd /opt/padavan-4.4/toolchain-mipsel
+        sh dl_toolchain.sh
+        mkdir -p /opt/images/
+    - name: Build Firmware
+      env:
+        TNAME: K2P-512
+        KERNEL: 4.4
+      run: |
+        cd /opt/padavan-4.4/trunk
+        if [ ! -f configs/templates/$TNAME.config ] ; then
+        echo "configs/templates/$TNAME.config not found"
+        exit 1
+        fi
+        #########################################################################################
+        #自定义添加其它功能请参考源码configs/templates/目录下的config文件。按照上面的格式添加即可
+        #格式如下：
+        #sed -i '/自定义项/d' configs/templates/$TNAME.config
+        #echo "自定义项=y" >> configs/templates/$TNAME.config
+        echo "CONFIG_FIRMWARE_INCLUDE_V2RAY=y" >> configs/templates/$TNAME.config
+        #########################################################################################
+        cp -f configs/templates/$TNAME.config .config
+        sudo ./clear_tree
+        sudo fakeroot ./build_firmware_modify $TNAME
+        sudo mv -f images/*.trx /opt/images/
+    - name : Upload packages
+      uses: actions/upload-artifact@master
+      if: always()
+      with:
+        name: Padavan-K2P-512
+        path: /opt/images
