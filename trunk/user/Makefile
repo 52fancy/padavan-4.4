@@ -27,6 +27,7 @@ SOFTETHERVPN_ENABLE=n
 SHADOWSOCKS_ENABLE=n
 FRP_ENABLE=n
 TROJAN_ENABLE=n
+V2RAY_ENABLE=n
 
 ifneq ($(CONFIG_FIRMWARE_INCLUDE_OPENSSH),y)
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_DROPBEAR),y)
@@ -88,6 +89,10 @@ endif
 
 ifneq ($(filter y,$(CONFIG_FIRMWARE_INCLUDE_WING) $(CONFIG_FIRMWARE_INCLUDE_TROJAN)),)
 TROJAN_ENABLE=y
+endif
+
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_V2RAY),y)
+V2RAY_ENABLE=y
 endif
 
 dir_y =
@@ -169,6 +174,7 @@ dir_y 			+= wing
 dir_y 			+= ipt2socks
 endif
 dir_$(TROJAN_ENABLE) 			+= trojan
+dir_$(V2RAY_ENABLE) 			+= v2ray
 dir_$(CONFIG_FIRMWARE_INCLUDE_REDSOCKS)			+= redsocks
 dir_$(CONFIG_FIRMWARE_INCLUDE_3PROXY)			+= 3proxy
 
